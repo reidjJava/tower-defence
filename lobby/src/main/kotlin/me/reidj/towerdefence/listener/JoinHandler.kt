@@ -4,7 +4,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
+import me.func.mod.Anime
 import me.func.mod.util.after
+import me.func.protocol.ui.indicator.Indicators
 import me.reidj.towerdefence.app
 import me.reidj.towerdefence.client
 import me.reidj.towerdefence.data.Stat
@@ -50,6 +52,8 @@ class JoinHandler : Listener {
         }
 
         after(5) {
+            Anime.hideIndicator(player, Indicators.EXP, Indicators.HEALTH, Indicators.HUNGER)
+
             user.player = player
         }
     }

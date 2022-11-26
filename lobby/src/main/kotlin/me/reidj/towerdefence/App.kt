@@ -15,7 +15,6 @@ import me.reidj.towerdefence.util.ItemUtil
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import ru.cristalix.core.CoreApi
-import ru.cristalix.core.chat.IChatService
 import ru.cristalix.core.lobby.ILobbyService
 import ru.cristalix.core.lobby.LobbyService
 import ru.cristalix.core.network.ISocketClient
@@ -32,7 +31,7 @@ import java.util.*
 
 lateinit var app: App
 
-val hub = RealmId.of("HUB-11")
+val hub: RealmId = RealmId.of("HUB-11")
 
 class App : JavaPlugin() {
 
@@ -45,7 +44,7 @@ class App : JavaPlugin() {
 
         Platforms.set(PlatformDarkPaper())
 
-        Anime.include(Kit.STANDARD, Kit.EXPERIMENTAL, Kit.NPC, Kit.DIALOG, Kit.LOOTBOX)
+        Anime.include(Kit.STANDARD, Kit.EXPERIMENTAL, Kit.NPC, Kit.LOOTBOX)
 
         worldMeta = MapLoader.load("ThePit", "ThePitReborn")
 
@@ -68,6 +67,9 @@ class App : JavaPlugin() {
             lobbyService.setItem(4, ItemUtil.cosmetic, { true }) {}
             lobbyService.setItem(8, ItemUtil.back, { true }) {}
         }
+
+        config.options().copyDefaults(true)
+        saveConfig()
 
         listener(JoinHandler(), UnusedHandler())
 

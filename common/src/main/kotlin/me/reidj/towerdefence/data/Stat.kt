@@ -7,6 +7,6 @@ import java.util.*
  * @author : Рейдж
  **/
 class Stat(
-    val uuid: UUID
-) {
-}
+    val uuid: UUID,
+    var leaveTime: Long,
+)

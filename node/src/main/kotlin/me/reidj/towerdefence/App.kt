@@ -17,6 +17,10 @@ import ru.cristalix.core.CoreApi
 import ru.cristalix.core.internal.BukkitInternals
 import ru.cristalix.core.internal.FastBukkitInternals
 import ru.cristalix.core.network.ISocketClient
+import ru.cristalix.core.party.IPartyService
+import ru.cristalix.core.party.PartyService
+import ru.cristalix.core.transfer.ITransferService
+import ru.cristalix.core.transfer.TransferService
 
 /**
  * @project : tower-defence
@@ -34,6 +38,8 @@ class App : JavaPlugin() {
 
         CoreApi.get().also {
             it.init(BukkitPlatform(Bukkit.getServer(), Bukkit.getLogger(), this))
+            it.registerService(IPartyService::class.java, PartyService(ISocketClient.get()))
+            it.registerService(ITransferService::class.java, TransferService(ISocketClient.get()))
         }
 
         BukkitInternals.setInstance(FastBukkitInternals())

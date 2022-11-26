@@ -34,10 +34,10 @@ object Games5e {
 
     fun joinQueue(player: Player) {
         val queueOnline = client.queueOnline
-        /*if (hasBanQueue(player)) {
-            Anime.killboardMessage(player, Formatting.error("У тебя бан в очереди. Истекает через ${getBanTime(player)} секунд."))
+        if (hasBanQueue(player)) {
+            Anime.killboardMessage(player, Formatting.error("У Вас бан в очереди. Истекает через ${getBanTime(player)} секунд."))
             return
-        }*/
+        }
         if (QueueViewer.views.contains(player.uniqueId)) {
             leaveQueue(player)
             Anime.killboardMessage(player, Formatting.error("Вы вышли с очереди."))
@@ -102,7 +102,7 @@ object Games5e {
 
     fun getQueueOnline() = client.queueOnline[queueId]  ?: 0
 
-    //fun hasBanQueue(player: Player) = app.getUser(player).stat.leaveTime > System.currentTimeMillis()
+    private fun hasBanQueue(player: Player) = app.getUser(player)!!.stat.leaveTime > System.currentTimeMillis()
 
-    //fun getBanTime(player: Player) = (app.getUser(player).stat.leaveTime - System.currentTimeMillis()) / 1000
+    private fun getBanTime(player: Player) = (app.getUser(player)!!.stat.leaveTime - System.currentTimeMillis()) / 1000
 }

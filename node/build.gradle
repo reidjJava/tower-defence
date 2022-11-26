@@ -13,7 +13,6 @@ dependencies {
     implementation 'implario:bukkit-tools:4.4.12'
 
     implementation 'dev.implario.bukkit:bukkit-tools:4.4.12'
-    implementation 'dev.implario:nettier:1.2.1'
     implementation 'dev.implario.games5e:bukkit-worker-core:2.1.21'
     implementation 'dev.implario.games5e:games5e-integration:1.4.4'
 
