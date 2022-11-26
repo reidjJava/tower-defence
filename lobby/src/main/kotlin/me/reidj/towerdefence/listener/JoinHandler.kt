@@ -14,6 +14,7 @@ import me.reidj.towerdefence.games5e.Games5e
 import me.reidj.towerdefence.hub
 import me.reidj.towerdefence.player.User
 import me.reidj.towerdefence.protocol.LoadUserPackage
+import me.reidj.towerdefence.protocol.SaveUserPackage
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
@@ -34,7 +35,7 @@ class JoinHandler : Listener {
             val statPackage = client().writeAndAwaitResponse<LoadUserPackage>(LoadUserPackage(uniqueId)).await()
             var stat = statPackage.stat
             if (stat == null)
-                stat = Stat(uniqueId,)
+                stat = Stat(uniqueId, 0)
             app.userMap.putIfAbsent(uniqueId, User(stat))
             completeIntent(app)
         }
@@ -61,5 +62,10 @@ class JoinHandler : Listener {
     @EventHandler
     fun PlayerQuitEvent.handle() {
         Games5e.leaveQueue(player)
+
+        val user = app.getUser(player) ?: return
+        val stat = user.stat
+
+        client().write(SaveUserPackage(stat.uuid, stat))
     }
 }

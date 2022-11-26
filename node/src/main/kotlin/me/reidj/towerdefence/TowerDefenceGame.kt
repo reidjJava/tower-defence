@@ -59,7 +59,7 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings): Game(gameI
                 coroutine().launch {
                     val statPackage = client().writeAndAwaitResponse<LoadUserPackage>(LoadUserPackage(uniqueId)).await()
                     var stat = statPackage.stat
-                    if (stat == null) stat = Stat(uniqueId)
+                    if (stat == null) stat = Stat(uniqueId, 0)
                     userMap[uniqueId] = User(stat)
                     completeIntent(app)
                 }
