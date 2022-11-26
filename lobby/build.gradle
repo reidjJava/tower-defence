@@ -1,0 +1,32 @@
+plugins {
+    id("org.jetbrains.kotlin.jvm")
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.0")
+
+    compileOnly 'ru.cristalix.core:bukkit-api:1.0.18.15-TEST'
+    compileOnly 'cristalix:dark-paper:21.02.03'
+
+    implementation 'implario:kotlin-api:1.1.1'
+    implementation 'implario:bukkit-tools:4.4.12'
+
+    implementation 'dev.implario.bukkit:dark-paper:1.0.0'
+    implementation 'dev.implario.bukkit:bukkit-tools:4.4.12'
+    implementation 'implario:bukkit-worker-core:2.1.20'
+
+    implementation 'me.func:visual-driver:3.2.58.TEST'
+    implementation 'me.func:world-api:1.0.9'
+
+    implementation 'ru.cristalix:boards-bukkit-api:3.0.16'
+
+    implementation project(':common')
+}
+
+afterEvaluate {
+    jar {
+        archiveBaseName.set 'towerdefence-lobby'
+        from configurations.runtimeClasspath.collect { it.directory ? it : zipTree(it) }
+        duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    }
+}
