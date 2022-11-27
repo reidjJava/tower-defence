@@ -14,7 +14,6 @@ pluginManagement {
 
 rootProject.name = 'tower-defence'
 include 'node'
-include 'common'
-include 'service'
 include 'lobby'
+include 'data'
 

@@ -12,6 +12,7 @@ dependencies {
     implementation 'implario:kotlin-api:1.1.1'
     implementation 'implario:bukkit-tools:4.4.12'
 
+    implementation 'dev.implario:kensuke-client-bukkit:2.1.10'
     implementation 'dev.implario.bukkit:bukkit-tools:4.4.12'
     implementation 'dev.implario.games5e:bukkit-worker-core:2.1.21'
     implementation 'dev.implario.games5e:games5e-integration:1.4.4'
@@ -20,7 +21,7 @@ dependencies {
 
     implementation 'ru.cristalix:boards-bukkit-api:3.0.15'
 
-    implementation project(':common')
+    implementation project(':data')
 }
 
 afterEvaluate {

@@ -1,4 +1,4 @@
-package me.reidj.towerdefence.data
+package me.reidj.towerdefence
 
 import java.util.*
 

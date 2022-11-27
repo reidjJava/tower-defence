@@ -1,6 +1,10 @@
 package me.reidj.towerdefence
 
 import dev.implario.bukkit.platform.Platforms
+import dev.implario.kensuke.Kensuke
+import dev.implario.kensuke.Scope
+import dev.implario.kensuke.impl.bukkit.BukkitKensuke
+import dev.implario.kensuke.impl.bukkit.BukkitUserManager
 import dev.implario.platform.impl.darkpaper.PlatformDarkPaper
 import me.func.mod.Anime
 import me.func.mod.Kit
@@ -17,7 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import ru.cristalix.core.CoreApi
 import ru.cristalix.core.lobby.ILobbyService
 import ru.cristalix.core.lobby.LobbyService
-import ru.cristalix.core.network.ISocketClient
 import ru.cristalix.core.permissions.IPermissionService
 import ru.cristalix.core.realm.IRealmService
 import ru.cristalix.core.realm.RealmId
@@ -37,20 +40,40 @@ class App : JavaPlugin() {
 
     lateinit var worldMeta: WorldMeta
 
-    val userMap = hashMapOf<UUID, User>()
+    val statScope = Scope("tower-defence", Stat::class.java)
+    var userManager = BukkitUserManager(
+        listOf(statScope),
+        { session, context -> User(session, context.getData(statScope)) },
+        { user, context -> context.store(statScope, user.stat) }
+    )
+    lateinit var kensuke: Kensuke
 
     override fun onEnable() {
         app = this
 
         Platforms.set(PlatformDarkPaper())
 
-        Anime.include(Kit.STANDARD, Kit.EXPERIMENTAL, Kit.NPC, Kit.LOOTBOX)
+        CoreApi.get().registerService(ILobbyService::class.java, LobbyService())
 
         worldMeta = MapLoader.load("ThePit", "ThePitReborn")
 
-        CoreApi.get().registerService(ILobbyService::class.java, LobbyService())
+        Anime.include(Kit.STANDARD, Kit.EXPERIMENTAL, Kit.NPC, Kit.LOOTBOX)
 
         val permissionService = IPermissionService.get()
+        ILobbyService.get().also { lobbyService ->
+            lobbyService.addSpawnLocation(worldMeta.label("spawn"))
+            lobbyService.setAutoFlyCondition { permissionService.isDonator(it.uniqueId) || permissionService.isStaffMember(it.uniqueId) }
+            lobbyService.setItem(0, ItemUtil.game, { true }) { Games5e.joinQueue(it) }
+            lobbyService.setItem(4, ItemUtil.cosmetic, { true }) {}
+            lobbyService.setItem(8, ItemUtil.back, { true }) {}
+        }
+
+        // Kensuke moment
+        kensuke = BukkitKensuke.setup(app)
+        kensuke.addGlobalUserManager(userManager)
+        kensuke.globalRealm = "TWDL-1"
+        userManager.isOptional = true
+
         IRealmService.get().currentRealmInfo.also {
             it.status = RealmStatus.WAITING_FOR_PLAYERS
             it.maxPlayers = 150
@@ -58,14 +81,6 @@ class App : JavaPlugin() {
             it.groupName = "TowerDefence"
             it.isLobbyServer = true
             it.saveRealm = it.realmId
-        }
-
-        ILobbyService.get().also { lobbyService ->
-            lobbyService.addSpawnLocation(worldMeta.label("spawn"))
-            lobbyService.setAutoFlyCondition { permissionService.isDonator(it.uniqueId) || permissionService.isStaffMember(it.uniqueId) }
-            lobbyService.setItem(0, ItemUtil.game, { true }) { Games5e.joinQueue(it) }
-            lobbyService.setItem(4, ItemUtil.cosmetic, { true }) {}
-            lobbyService.setItem(8, ItemUtil.back, { true }) {}
         }
 
         config.options().copyDefaults(true)
@@ -78,7 +93,5 @@ class App : JavaPlugin() {
 
     fun getUser(player: Player) = getUser(player.uniqueId)
 
-    fun getUser(uuid: UUID) = userMap[uuid]
+    fun getUser(uuid: UUID) = userManager.getUser(uuid)
 }
-
-fun client(): ISocketClient = ISocketClient.get()
