@@ -1,23 +1,13 @@
 package me.reidj.towerdefence.listener
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import me.func.mod.Anime
 import me.func.mod.util.after
 import me.func.protocol.ui.indicator.Indicators
 import me.reidj.towerdefence.app
-import me.reidj.towerdefence.client
-import me.reidj.towerdefence.data.Stat
 import me.reidj.towerdefence.games5e.Games5e
 import me.reidj.towerdefence.hub
-import me.reidj.towerdefence.player.User
-import me.reidj.towerdefence.protocol.LoadUserPackage
-import me.reidj.towerdefence.protocol.SaveUserPackage
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import ru.cristalix.core.formatting.Formatting
@@ -28,18 +18,6 @@ import ru.cristalix.core.transfer.ITransferService
  * @author : Рейдж
  **/
 class JoinHandler : Listener {
-
-    @EventHandler
-    fun AsyncPlayerPreLoginEvent.handle() = registerIntent(app).apply {
-        CoroutineScope(Dispatchers.IO).launch {
-            val statPackage = client().writeAndAwaitResponse<LoadUserPackage>(LoadUserPackage(uniqueId)).await()
-            var stat = statPackage.stat
-            if (stat == null)
-                stat = Stat(uniqueId, 0)
-            app.userMap.putIfAbsent(uniqueId, User(stat))
-            completeIntent(app)
-        }
-    }
 
     @EventHandler
     fun PlayerJoinEvent.handle() {
@@ -62,10 +40,5 @@ class JoinHandler : Listener {
     @EventHandler
     fun PlayerQuitEvent.handle() {
         Games5e.leaveQueue(player)
-
-        val user = app.getUser(player) ?: return
-        val stat = user.stat
-
-        client().write(SaveUserPackage(stat.uuid, stat))
     }
 }
