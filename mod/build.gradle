@@ -1,0 +1,25 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'dev.implario.bundler' version '4.0.1'
+}
+
+dependencies {
+    compileOnly 'ru.cristalix:client-api:10.2-SNAPSHOT'
+    implementation 'ru.cristalix:client-sdk:10.2-SNAPSHOT'
+    implementation 'ru.cristalix:uiengine:10.2-SNAPSHOT'
+}
+
+bundle {
+    modName 'TowerDefence'
+    mainClass 'me.reidj.towerdefence.App'
+    author 'Reidj'
+    keep('class ru.cristalix.data.** { *; }')
+    keep('class ru.cristalix.** { *; }')
+}
+
+jar {
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.directory ? it : zipTree(it) }
+    }
+}
