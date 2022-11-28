@@ -10,27 +10,35 @@ import java.util.*
  * @project : tower-defence
  * @author : Рейдж
  **/
-class User(session: KensukeSession, stat: Stat?) : IBukkitKensukeUser {
+class User(kensukeSession: KensukeSession, stat: Stat?) : IBukkitKensukeUser {
 
     var stat: Stat
 
     private var player: Player? = null
+    private var money: Long = 0
+
+    var session: Session? = null
+
     override fun setPlayer(p0: Player?) {
         player = p0
     }
 
     override fun getPlayer() = player
 
-    private var session: KensukeSession
+    private var kensukeSession: KensukeSession
     override fun getSession(): KensukeSession {
-        return session
+        return kensukeSession
     }
 
     init {
         this.stat = stat ?: Stat(
-            UUID.fromString(session.userId),
+            UUID.fromString(kensukeSession.userId),
             0,
         )
-        this.session = session
+        this.kensukeSession = kensukeSession
+    }
+
+    fun giveMoney(money: Long) {
+        this.money += money
     }
 }

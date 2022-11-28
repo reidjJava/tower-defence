@@ -16,4 +16,5 @@ rootProject.name = 'tower-defence'
 include 'node'
 include 'lobby'
 include 'data'
+include 'mod'
 

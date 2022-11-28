@@ -14,11 +14,19 @@ import dev.implario.platform.impl.darkpaper.PlatformDarkPaper
 import me.func.mod.Anime
 import me.func.mod.Kit
 import me.func.mod.conversation.ModLoader
+import me.func.mod.ui.Glow
+import me.func.mod.util.after
+import me.func.protocol.data.color.GlowColor
+import me.func.protocol.data.status.EndStatus
+import me.reidj.towerdefence.clock.GameTimer
+import me.reidj.towerdefence.game.WaveManager
 import me.reidj.towerdefence.player.User
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import ru.cristalix.core.internal.BukkitInternals
 import ru.cristalix.core.internal.FastBukkitInternals
+import ru.cristalix.core.realm.RealmId
 import java.util.*
 
 /**
@@ -48,7 +56,6 @@ class App : JavaPlugin() {
         val node = DefaultGameNode()
         val gson = Gson()
 
-        node.supportedImagePrefixes.add("TWD")
         node.supportedImagePrefixes.add("tower-defence")
         node.linker = SessionBukkitLinker.link(node)
         node.gameCreator = GameCreator { gameId, _, settings ->
@@ -66,7 +73,29 @@ class App : JavaPlugin() {
         Anime.include(Kit.NPC, Kit.EXPERIMENTAL, Kit.STANDARD, Kit.HEALTH_BAR, Kit.LOOTBOX)
 
         ModLoader.loadAll("mods")
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, GameTimer(setOf(WaveManager())), 0, 1)
+
+        Anime.createReader("td:playerhit") { player, buffer ->
+            node.runningGames.values.filter { player in it.players }.forEach { game ->
+                val user = app.getUser(player) ?: return@createReader
+                val pair = buffer.toString(Charsets.UTF_8)
+                val session = user.session!!
+                var health = session.health
+                val towerDefenceGame = game as TowerDefenceGame
+
+                Glow.animate(player, .5, GlowColor.RED)
+                health -= pair.toDouble()
+
+                if (health <= 0) {
+                    Anime.showEnding(player, EndStatus.LOSE, "Волн пройдено:", "${session.wave.level}")
+                    after(5 * 20) { towerDefenceGame.close() }
+                }
+            }
+        }
     }
+
+    fun getLobbyRealm() = RealmId.of("TWDL-1")
 
     fun getUser(player: Player) = getUser(player.uniqueId)
 

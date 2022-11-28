@@ -7,6 +7,13 @@ import dev.implario.games5e.node.Game
 import dev.implario.games5e.sdk.cristalix.Cristalix
 import dev.implario.games5e.sdk.cristalix.MapLoader
 import dev.implario.games5e.sdk.cristalix.WorldMeta
+import me.func.mod.Anime
+import me.func.mod.conversation.ModLoader
+import me.func.mod.conversation.ModTransfer
+import me.func.protocol.ui.indicator.Indicators
+import me.reidj.towerdefence.game.Wave
+import me.reidj.towerdefence.player.Session
+import org.bukkit.Bukkit
 import org.bukkit.event.block.*
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityDamageByEntityEvent
@@ -18,7 +25,8 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.*
-import ru.cristalix.core.realm.RealmId
+import ru.cristalix.core.formatting.Formatting
+import ru.cristalix.core.transfer.ITransferService
 import ru.cristalix.core.transfer.TransferService
 import java.util.*
 
@@ -29,7 +37,7 @@ import java.util.*
 
 data class TowerDefenceSettings(val teams: Set<Set<UUID>>)
 
-class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings): Game(gameId) {
+class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(gameId) {
 
     val cristalix: Cristalix = Cristalix.connectToCristalix(this, "TWD", "TowerDefence")!!
     val map: WorldMeta = MapLoader.load(this, "TDSIM", "2")
@@ -43,7 +51,45 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings): Game(gameI
 
     init {
         cristalix.updateRealmInfo()
-        cristalix.setRealmInfoBuilder { it.lobbyFallback(RealmId.of("TWDL-1")) }
+        cristalix.setRealmInfoBuilder { it.lobbyFallback(app.getLobbyRealm()) }
+
+        context.on<PlayerJoinEvent> {
+            val user = app.getUser(player)
+
+            if (user == null) {
+                player.sendMessage(Formatting.error("Нам не удалось прогрузить Вашу статистику."))
+                after(10) { ITransferService.get().transfer(player.uniqueId, app.getLobbyRealm()) }
+                return@on
+            }
+
+            after(3) {
+                Anime.hideIndicator(
+                    player,
+                    Indicators.EXP,
+                    Indicators.ARMOR,
+                    Indicators.HUNGER,
+                    Indicators.HEALTH,
+                    Indicators.VEHICLE,
+                    Indicators.AIR_BAR
+                )
+
+                Anime.counting321(player)
+                after(3 * 20) {
+                    user.session = Session(50.0, Wave(System.currentTimeMillis(), 1, mutableListOf(), player))
+                    user.session!!.wave.start()
+                }
+
+                ModLoader.send("mod-bundle-1.0-SNAPSHOT.jar", player)
+
+                map.getLabels("conveyor").sortedBy { it.tag.split(" ")[0].toInt() }.forEach {
+                    ModTransfer(
+                        it.x,
+                        it.y,
+                        it.z
+                    ).send("td:route-create", player)
+                }
+            }
+        }
 
         context.on<BlockRedstoneEvent> { newCurrent = oldCurrent }
         context.on<BlockPlaceEvent> { isCancelled = true }
@@ -68,5 +114,15 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings): Game(gameI
         context.on<CreatureSpawnEvent> { isCancelled = true }
 
         after(10) { transferService.transferBatch(settings.teams.flatten(), cristalix.realmId) }
+    }
+
+    fun close() {
+        transferService.transferBatch(players.map { it.uniqueId }, app.getLobbyRealm())
+
+        after(10) {
+            isTerminated = true
+            Bukkit.unloadWorld(map.world, false)
+            unregisterAll()
+        }
     }
 }
