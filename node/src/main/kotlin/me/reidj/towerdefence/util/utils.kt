@@ -2,6 +2,9 @@ package me.reidj.towerdefence.util
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import me.func.mod.conversation.ModTransfer
+import me.reidj.towerdefence.game.mob.Mob
+import org.bukkit.entity.Player
 
 /**
  * @project : tower-defence
@@ -9,3 +12,8 @@ import kotlinx.coroutines.Dispatchers
  **/
 
 fun coroutine() = CoroutineScope(Dispatchers.IO)
+
+fun MutableList<Mob>.clear(player: Player) {
+    forEach { ModTransfer(it.uuid.toString(), "").send("towerdefence:mob-kill", player) }
+    clear()
+}
