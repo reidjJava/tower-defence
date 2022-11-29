@@ -13,9 +13,8 @@ import java.lang.Math.atan2
  **/
 class MobManager {
 
-    private val mobs = hashMapOf<EntityLivingBase, Mob>()
-
     companion object {
+        val mobs = hashMapOf<EntityLivingBase, Mob>()
         val route = hashSetOf<V3>()
     }
 

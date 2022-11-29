@@ -1,7 +1,9 @@
 package me.reidj.towerdefence
 
+import dev.xdark.clientapi.event.render.PlayerListRender
 import me.reidj.towerdefence.mob.MobManager
 import me.reidj.towerdefence.player.PlayerBar
+import me.reidj.towerdefence.player.TimeBar
 import ru.cristalix.clientapi.KotlinMod
 import ru.cristalix.uiengine.UIEngine
 
@@ -16,5 +18,8 @@ class App : KotlinMod() {
 
         MobManager()
         PlayerBar()
+        TimeBar()
+
+        registerHandler<PlayerListRender> { isCancelled = true }
     }
 }

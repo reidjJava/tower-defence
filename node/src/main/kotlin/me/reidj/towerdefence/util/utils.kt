@@ -14,6 +14,6 @@ import org.bukkit.entity.Player
 fun coroutine() = CoroutineScope(Dispatchers.IO)
 
 fun MutableList<Mob>.clear(player: Player) {
-    forEach { ModTransfer(it.uuid.toString(), "").send("towerdefence:mob-kill", player) }
+    forEach { ModTransfer(it.uuid.toString(), "").send("td:mob-kill", player) }
     clear()
 }

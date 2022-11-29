@@ -1,6 +1,7 @@
 package me.reidj.towerdefence.game
 
 import me.func.mod.Anime
+import me.func.mod.conversation.ModTransfer
 import me.func.mod.util.after
 import me.reidj.towerdefence.app
 import me.reidj.towerdefence.game.mob.Mob
@@ -22,7 +23,10 @@ data class Wave(
 
     fun start() {
         startTime = System.currentTimeMillis()
-        repeat(1 + level * 2) {
+
+        ModTransfer("$level волна. До следующей волны", 60).send("td:bar", player)
+
+        repeat(2 + level * 2) {
             Bukkit.getScheduler().runTaskLater(app, { drawMob() }, minOf(it.toLong() * 75, 400))
         }
     }
