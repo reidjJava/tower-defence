@@ -73,12 +73,6 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
                     Indicators.AIR_BAR
                 )
 
-                Anime.counting321(player)
-                after(3 * 20) {
-                    user.session = Session(50.0, Wave(System.currentTimeMillis(), 1, mutableListOf(), player))
-                    user.session!!.wave.start()
-                }
-
                 ModLoader.send("mod-bundle-1.0-SNAPSHOT.jar", player)
 
                 map.getLabels("conveyor").sortedBy { it.tag.split(" ")[0].toInt() }.forEach {
@@ -87,6 +81,15 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
                         it.y,
                         it.z
                     ).send("td:route-create", player)
+                }
+
+                Anime.counting321(player)
+                after(3 * 20) {
+                    user.session = Session(50.0,50.0, Wave(System.currentTimeMillis(), 1, mutableListOf(), player))
+                    user.session!!.wave.start()
+
+                    user.giveMoney(0)
+                    user.session!!.setHealth(0.0, player)
                 }
             }
         }

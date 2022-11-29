@@ -1,6 +1,7 @@
 package me.reidj.towerdefence
 
 import me.reidj.towerdefence.mob.MobManager
+import me.reidj.towerdefence.player.PlayerBar
 import ru.cristalix.clientapi.KotlinMod
 import ru.cristalix.uiengine.UIEngine
 
@@ -14,5 +15,6 @@ class App : KotlinMod() {
         UIEngine.initialize(this)
 
         MobManager()
+        PlayerBar()
     }
 }

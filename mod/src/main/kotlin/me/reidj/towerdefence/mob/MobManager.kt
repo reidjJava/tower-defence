@@ -36,8 +36,6 @@ class MobManager {
             Mob(uuid, id, hp, moveSpeed.toFloat(), timeSpawn).also { mobs[it.create()] = it }
         }
 
-        var lastTick = System.currentTimeMillis()
-
         mod.registerHandler<GameLoop> {
             if (mobs.isEmpty() || route.isEmpty()) {
                 return@registerHandler
