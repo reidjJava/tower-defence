@@ -2,6 +2,7 @@ package me.reidj.towerdefence.player
 
 import dev.implario.kensuke.KensukeSession
 import dev.implario.kensuke.impl.bukkit.IBukkitKensukeUser
+import me.func.mod.conversation.ModTransfer
 import me.reidj.towerdefence.Stat
 import org.bukkit.entity.Player
 import java.util.*
@@ -15,7 +16,8 @@ class User(kensukeSession: KensukeSession, stat: Stat?) : IBukkitKensukeUser {
     var stat: Stat
 
     private var player: Player? = null
-    private var money: Long = 0
+
+    var money: Int = 0
 
     var session: Session? = null
 
@@ -38,7 +40,8 @@ class User(kensukeSession: KensukeSession, stat: Stat?) : IBukkitKensukeUser {
         this.kensukeSession = kensukeSession
     }
 
-    fun giveMoney(money: Long) {
+    fun giveMoney(money: Int) {
         this.money += money
+        ModTransfer(this.money).send("td:money-update", player)
     }
 }
