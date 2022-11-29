@@ -1,6 +1,5 @@
 package me.reidj.towerdefence.game
 
-import me.func.mod.util.after
 import me.reidj.towerdefence.app
 import me.reidj.towerdefence.clock.ClockInject
 import me.reidj.towerdefence.util.clear
@@ -22,9 +21,10 @@ class WaveManager : ClockInject {
             .forEach {
                 val wave = it.session!!.wave
                 val now = System.currentTimeMillis()
-                if ((now - wave.startTime) / 1000 == 60.toLong() || wave.aliveMobs.isEmpty()) {
+                if ((now - wave.startTime) / 1000 == 60.toLong()) {
                     wave.aliveMobs.clear(it.player!!)
-                    after { wave.end() }
+                    wave.end()
+                    return
                 }
             }
     }
