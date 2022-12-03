@@ -19,8 +19,6 @@ class User(kensukeSession: KensukeSession, stat: Stat?) : IBukkitKensukeUser {
 
     var money: Int = 0
 
-    var session: Session? = null
-
     override fun setPlayer(p0: Player?) {
         player = p0
     }

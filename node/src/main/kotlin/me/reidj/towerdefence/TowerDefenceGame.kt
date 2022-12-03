@@ -11,14 +11,10 @@ import me.func.mod.Anime
 import me.func.mod.conversation.ModLoader
 import me.func.mod.conversation.ModTransfer
 import me.func.protocol.ui.indicator.Indicators
-import me.reidj.towerdefence.game.Wave
-import me.reidj.towerdefence.player.Session
+import me.reidj.towerdefence.App.Companion.LOBBY_REALM
 import org.bukkit.Bukkit
 import org.bukkit.event.block.*
-import org.bukkit.event.entity.CreatureSpawnEvent
-import org.bukkit.event.entity.EntityDamageByEntityEvent
-import org.bukkit.event.entity.EntityExplodeEvent
-import org.bukkit.event.entity.FoodLevelChangeEvent
+import org.bukkit.event.entity.*
 import org.bukkit.event.hanging.HangingBreakByEntityEvent
 import org.bukkit.event.inventory.CraftItemEvent
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -51,14 +47,14 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
 
     init {
         cristalix.updateRealmInfo()
-        cristalix.setRealmInfoBuilder { it.lobbyFallback(app.getLobbyRealm()) }
+        cristalix.setRealmInfoBuilder { it.lobbyFallback(LOBBY_REALM) }
 
         context.on<PlayerJoinEvent> {
             val user = app.getUser(player)
 
             if (user == null) {
                 player.sendMessage(Formatting.error("Нам не удалось прогрузить Вашу статистику."))
-                after(10) { ITransferService.get().transfer(player.uniqueId, app.getLobbyRealm()) }
+                after(10) { ITransferService.get().transfer(player.uniqueId, LOBBY_REALM) }
                 return@on
             }
 
@@ -70,27 +66,25 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
                     Indicators.HUNGER,
                     Indicators.HEALTH,
                     Indicators.VEHICLE,
-                    Indicators.AIR_BAR
+                    Indicators.AIR_BAR,
+                    Indicators.TAB
                 )
+
+                player.allowFlight = true
+                player.isFlying = true
 
                 ModLoader.send("mod-bundle-1.0-SNAPSHOT.jar", player)
 
-                map.getLabels("conveyor").sortedBy { it.tag.split(" ")[0].toInt() }.forEach {
-                    ModTransfer(
-                        it.x,
-                        it.y,
-                        it.z
-                    ).send("td:route-create", player)
-                }
+                val routes = map.getLabels("conveyor").sortedBy { it.tag.split(" ")[0].toInt() }
+
+                ModTransfer()
+                    .integer(routes.size)
+                    .apply { routes.forEach {
+                        v3(it)
+                        float(it.tag.split(" ")[1].toFloat())
+                    } }.send("td:route-create", player)
 
                 Anime.counting321(player)
-                after(3 * 20) {
-                    user.session = Session(50.0,50.0, Wave(System.currentTimeMillis(), 1, mutableListOf(), player))
-                    user.session!!.wave.start()
-
-                    user.giveMoney(0)
-                    user.session!!.setHealth(0.0, player)
-                }
             }
         }
 
@@ -103,6 +97,7 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
         context.on<BlockSpreadEvent> { isCancelled = true }
         context.on<BlockGrowEvent> { isCancelled = true }
         context.on<BlockPhysicsEvent> { isCancelled = true }
+        context.on<BlockBreakEvent> { isCancelled = true }
         context.on<BlockFromToEvent> { isCancelled = true }
         context.on<HangingBreakByEntityEvent> { isCancelled = true }
         context.on<BlockBurnEvent> { isCancelled = true }
@@ -115,12 +110,13 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
         context.on<FoodLevelChangeEvent> { foodLevel = 20 }
         context.on<EntityDamageByEntityEvent> { isCancelled = true }
         context.on<CreatureSpawnEvent> { isCancelled = true }
+        context.on<EntityDamageEvent> { isCancelled = true }
 
         after(10) { transferService.transferBatch(settings.teams.flatten(), cristalix.realmId) }
     }
 
     fun close() {
-        transferService.transferBatch(players.map { it.uniqueId }, app.getLobbyRealm())
+        transferService.transferBatch(players.map { it.uniqueId }, LOBBY_REALM)
 
         after(10) {
             isTerminated = true

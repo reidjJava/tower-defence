@@ -1,14 +1,12 @@
 package me.reidj.towerdefence.mob
 
-import dev.xdark.clientapi.entity.EntityLivingBase
 import dev.xdark.clientapi.event.lifecycle.GameLoop
-import dev.xdark.feder.NetUtil
+import me.reidj.towerdefence.Location
 import me.reidj.towerdefence.banner.Banners
 import ru.cristalix.clientapi.KotlinModHolder.mod
 import ru.cristalix.clientapi.readId
+import ru.cristalix.clientapi.readUtf8
 import ru.cristalix.uiengine.UIEngine
-import ru.cristalix.uiengine.utility.V3
-import java.lang.Math.atan2
 import java.util.*
 
 /**
@@ -18,16 +16,21 @@ import java.util.*
 class MobManager {
 
     companion object {
-        val mobs = hashMapOf<EntityLivingBase, Mob>()
-        val route = hashSetOf<V3>()
+        val mobs = hashMapOf<UUID, Mob>()
+        var route = listOf<Location>()
     }
 
     init {
         mod.registerChannel("td:route-create") {
-            val x = readDouble()
-            val y = readDouble()
-            val z = readDouble()
-            route.add(V3(x, y, z))
+            route = MutableList(readInt()) {
+                Location(readDouble(), readDouble(), readDouble(), readFloat())
+            }
+            println("route size "+ route.size)
+        }
+
+        mod.registerChannel("td:kill-all") {
+            mobs.values.forEach(Mob::kill)
+            mobs.clear()
         }
 
         mod.registerChannel("td:mob-init") {
@@ -35,43 +38,39 @@ class MobManager {
             val id = readInt()
             val hp = readDouble()
             val moveSpeed = readDouble()
-            val timeSpawn = readDouble()
-            Mob(uuid, id, hp, moveSpeed.toFloat(), timeSpawn).also { mobs[it.create()] = it }
+            val timeSpawn = readLong()
+            Mob(uuid, id, hp, moveSpeed.toFloat(), timeSpawn).also { mobs[uuid] = it }
         }
 
         mod.registerChannel("td:mob-kill") {
-            val uuid = UUID.fromString(NetUtil.readUtf8(this))
-            val text = NetUtil.readUtf8(this)
-            val mob = mobs.keys.find { it.uniqueID == uuid } ?: return@registerChannel
+            val uuid = readId()
+            val text = readUtf8()
+            val mob = mobs[uuid] ?: return@registerChannel
 
             if (text.isNotEmpty()) {
-                Banners.create(uuid, mob.x, mob.y + 2, mob.z, text)
+                Banners.create(uuid, mob.entity.x, mob.entity.y + 2, mob.entity.z, text)
                 UIEngine.schedule(2) { Banners.remove(uuid) }
             }
 
-            UIEngine.clientApi.minecraft().world.removeEntity(mob)
+            mob.kill()
 
-            mobs.remove(mob)
+            mobs.remove(uuid)
         }
 
         mod.registerHandler<GameLoop> {
             if (mobs.isEmpty() || route.isEmpty()) {
                 return@registerHandler
             }
-            val now = System.currentTimeMillis().toDouble()
             mobs.forEach { entry ->
-                val entity = entry.key
+                val entity = entry.value.entity
                 val mob = entry.value
                 val position = mob.getPosition(
                     route,
-                    now - mob.timeSpawn,
-                    entity.aiMoveSpeed.toDouble()
+                    mob.timeSpawn
                 )
 
-                val rotation = Math.toDegrees(-atan2(position.x - entity.x, position.z - entity.z)).toFloat()
-
-                entity.rotationYawHead = rotation
-                entity.setYaw(rotation)
+                entity.rotationYawHead = position.yaw
+                entity.setYaw(position.yaw)
                 entity.teleport(position.x, position.y, position.z)
             }
         }
