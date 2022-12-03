@@ -1,8 +1,8 @@
 package me.reidj.towerdefence.mob
 
 import dev.xdark.clientapi.entity.EntityLivingBase
+import me.reidj.towerdefence.Location
 import ru.cristalix.uiengine.UIEngine
-import ru.cristalix.uiengine.utility.V3
 import java.util.*
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -16,10 +16,10 @@ data class Mob(
     private val id: Int,
     private var hp: Double,
     private val moveSpeed: Float,
-    val timeSpawn: Double,
+    val timeSpawn: Long,
 ) {
 
-    fun create(): EntityLivingBase {
+    val entity: EntityLivingBase by lazy {
         val mob =
             UIEngine.clientApi.entityProvider().newEntity(id, UIEngine.clientApi.minecraft().world) as EntityLivingBase
         val firstLocation = MobManager.route.first()
@@ -28,26 +28,30 @@ data class Mob(
         mob.teleport(firstLocation.x, firstLocation.y, firstLocation.z)
         mob.health = hp.toFloat()
         mob.alwaysRenderNameTag = true
-        mob.aiMoveSpeed = moveSpeed
         UIEngine.clientApi.minecraft().world.spawnEntity(mob)
-        return mob
+        mob
     }
 
-    fun getPosition(mobLocations: HashSet<V3>, timeFromSpawn: Double, velocity: Double): V3 {
+    fun kill() {
+        UIEngine.clientApi.minecraft().world.removeEntity(entity)
+    }
+
+    // TODO не поддерживает разную скорость и пути назад
+    fun getPosition(mobLocations: List<Location>, bornTimestamp: Long): Location {
         var firstLocation = mobLocations.first()
-        var timeTotal = timeFromSpawn
+        var timeTotal = System.currentTimeMillis() - bornTimestamp
         mobLocations.drop(1).forEach { nextLocation ->
             val timeForThisLine =
-                sqrt((firstLocation.x - nextLocation.x).pow(2.0) + (firstLocation.z - nextLocation.z).pow(2.0)) / velocity
+                sqrt((firstLocation.x - nextLocation.x).pow(2.0) + (firstLocation.z - nextLocation.z).pow(2.0)) / moveSpeed
             if (timeTotal > timeForThisLine) {
                 firstLocation = nextLocation
-                timeTotal -= timeForThisLine
+                timeTotal -= timeForThisLine.toLong()
                 return@forEach
             }
             val percent = timeTotal / timeForThisLine
             val dX = nextLocation.x - firstLocation.x
             val dZ = nextLocation.z - firstLocation.z
-            return V3(firstLocation.x + dX * percent, firstLocation.y, firstLocation.z + dZ * percent)
+            return Location(firstLocation.x + dX * percent, firstLocation.y, firstLocation.z + dZ * percent, firstLocation.yaw)
         }
         return firstLocation
     }

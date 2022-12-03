@@ -22,7 +22,5 @@ class App : KotlinMod() {
         TimeBar()
 
         Banners
-
-        registerHandler<PlayerListRender> { isCancelled = true }
     }
 }

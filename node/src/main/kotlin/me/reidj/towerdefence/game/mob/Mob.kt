@@ -25,7 +25,7 @@ data class Mob(
             .integer(type.typeId.toInt())
             .double(hp)
             .double(moveSpeed.toDouble())
-            .double(0.01)
+            .long(System.currentTimeMillis())
             .send("td:mob-init", player)
     }
 }

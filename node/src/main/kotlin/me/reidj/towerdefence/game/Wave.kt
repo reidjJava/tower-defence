@@ -5,8 +5,6 @@ import me.func.mod.conversation.ModTransfer
 import me.func.mod.util.after
 import me.reidj.towerdefence.app
 import me.reidj.towerdefence.game.mob.Mob
-import me.reidj.towerdefence.game.mob.MobType
-import org.bukkit.Bukkit
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 
@@ -26,9 +24,9 @@ data class Wave(
 
         ModTransfer("$level волна. До следующей волны", 60).send("td:bar", player)
 
-        repeat(2 + level * 2) {
+        /*repeat(2 + level * 2) {
             Bukkit.getScheduler().runTaskLater(app, { drawMob() }, minOf(it.toLong() * 75, 400))
-        }
+        }*/
     }
 
     fun end() {
@@ -42,16 +40,12 @@ data class Wave(
         after(3 * 20) { start() }
     }
 
-    private fun drawMob() {
+    private fun createMob() {
         val hpFormula = level * 0.3
-        MobType.values()
-            .filter { it.wave.any { wave -> level % wave == 0 } }
-            .forEach {
-                Mob {
-                    hp = it.hp + hpFormula
-                    moveSpeed = it.moveSpeed
-                    type = EntityType.valueOf(it.name)
-                }.create(player).also { aliveMobs.add(it) }
-            }
+        Mob {
+            hp = 0.1 + hpFormula
+            moveSpeed = 0.1F
+            type = EntityType.ZOMBIE
+        }.create(player).also { aliveMobs.add(it) }
     }
 }
