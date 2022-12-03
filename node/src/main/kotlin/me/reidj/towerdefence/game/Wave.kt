@@ -4,6 +4,7 @@ import me.func.mod.Anime
 import me.func.mod.conversation.ModTransfer
 import me.func.mod.util.after
 import me.reidj.towerdefence.app
+import me.reidj.towerdefence.banner.VisualComponentManager
 import me.reidj.towerdefence.game.mob.Mob
 import org.bukkit.Bukkit
 
@@ -29,6 +30,7 @@ data class Wave(
 
     fun end() {
         level++
+        VisualComponentManager.waveProgress.text = "$level волна"
         Bukkit.getOnlinePlayers().forEach {
             val user = app.getUser(it) ?: return
             user.giveMoney(5)
