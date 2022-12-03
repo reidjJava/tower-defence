@@ -10,17 +10,18 @@ import dev.implario.games5e.sdk.cristalix.WorldMeta
 import me.func.mod.Anime
 import me.func.mod.conversation.ModLoader
 import me.func.mod.conversation.ModTransfer
-import me.func.mod.reactive.ReactivePanel
 import me.func.mod.ui.Glow
 import me.func.protocol.data.color.GlowColor
-import me.func.protocol.data.emoji.Emoji
 import me.func.protocol.data.status.EndStatus
 import me.func.protocol.ui.indicator.Indicators
 import me.reidj.towerdefence.App.Companion.LOBBY_REALM
+import me.reidj.towerdefence.banner.BannerUtil
+import me.reidj.towerdefence.banner.VisualComponentManager
 import me.reidj.towerdefence.clock.GameTimer
 import me.reidj.towerdefence.game.Wave
 import me.reidj.towerdefence.game.WaveManager
 import me.reidj.towerdefence.game.mob.MobManager
+import me.reidj.towerdefence.util.Formatter
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.block.*
@@ -49,17 +50,15 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
     val map: WorldMeta = MapLoader.load(this, "TDSIM", "2")
     val wave = Wave(0, 1, mutableListOf())
     val routes = map.getLabels("conveyor").sortedBy { it.tag.split(" ")[0].toInt() }
-    val maxHealth = 50.0
-    var health = 50.0
+    var health: Double = 50.0
+        set(value) {
+            BannerUtil.updateContent(VisualComponentManager.healthBanner, updateHealth())
+            field = value
+        }
 
+    private val maxHealth = 50.0
     private val transferService = TransferService(cristalix.client)
     private val spawn: Label = map.getLabel("spawn")
-    private val moneyPanel = ReactivePanel.builder()
-    /*private val progress = ReactiveProgress.builder()
-        .location(map.getLabel("banner-state"))
-        .text("${wave.level} волна")
-        .color(GlowColor.BLUE)
-        .build()*/
 
     override fun acceptPlayer(event: AsyncPlayerPreLoginEvent) = cristalix.acceptPlayer(event)
 
@@ -69,9 +68,9 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
         cristalix.updateRealmInfo()
         cristalix.setRealmInfoBuilder { it.lobbyFallback(LOBBY_REALM) }
 
-        //BannerUtil.create(map.getLabel("banner-health"), "$maxHealth из $health \uE19A")
-
         GameTimer(setOf(WaveManager(this), MobManager(this))).runTaskTimerAsynchronously(app, 0, 1)
+
+        VisualComponentManager(this)
 
         context.on<PlayerJoinEvent> {
             val user = app.getUser(player)
@@ -95,8 +94,10 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
                     Indicators.TAB
                 )
 
-                moneyPanel.text(Emoji.COIN + " " + user.money).build().send(player)
-                //progress.send(player)
+                user.moneyPanel.send(player)
+                user.giveMoney(0)
+
+                VisualComponentManager.waveProgress.send(player)
 
                 player.allowFlight = true
                 player.isFlying = true
@@ -159,12 +160,13 @@ class TowerDefenceGame(gameId: UUID, settings: TowerDefenceSettings) : Game(game
     }
 
     fun playerHit(player: Player, damage: Double) {
-        Glow.animate(player, .5, GlowColor.RED)
+        Glow.animate(player, 0.5, GlowColor.RED)
         health -= damage
-
         if (health <= 0) {
             Anime.showEnding(player, EndStatus.LOSE, "Волн пройдено:", "${wave.level}")
             after(5 * 20) { close() }
         }
     }
+
+    fun updateHealth() = Formatter.toFormat(health) + " из " + Formatter.toFormat(maxHealth) + " \uE19A"
 }

@@ -2,7 +2,8 @@ package me.reidj.towerdefence.player
 
 import dev.implario.kensuke.KensukeSession
 import dev.implario.kensuke.impl.bukkit.IBukkitKensukeUser
-import me.func.mod.conversation.ModTransfer
+import me.func.mod.reactive.ReactivePanel
+import me.func.protocol.data.emoji.Emoji
 import me.reidj.towerdefence.Stat
 import org.bukkit.entity.Player
 import java.util.*
@@ -17,7 +18,13 @@ class User(kensukeSession: KensukeSession, stat: Stat?) : IBukkitKensukeUser {
 
     private var player: Player? = null
 
+    val moneyPanel = ReactivePanel.builder().build()
+
     var money: Int = 0
+        set(value) {
+            field = value
+            moneyPanel.text = Emoji.COIN + " " + field
+        }
 
     override fun setPlayer(p0: Player?) {
         player = p0
@@ -40,6 +47,5 @@ class User(kensukeSession: KensukeSession, stat: Stat?) : IBukkitKensukeUser {
 
     fun giveMoney(money: Int) {
         this.money += money
-        ModTransfer(this.money).send("td:money-update", player)
     }
 }

@@ -1,6 +1,7 @@
 package me.reidj.towerdefence.game
 
 import me.reidj.towerdefence.TowerDefenceGame
+import me.reidj.towerdefence.banner.VisualComponentManager
 import me.reidj.towerdefence.clock.ClockInject
 
 /**
@@ -15,6 +16,7 @@ class WaveManager(private val game: TowerDefenceGame) : ClockInject {
         }
         val now = System.currentTimeMillis()
         val wave = game.wave
+        VisualComponentManager.waveProgress.progress = 1 - (now * 1.0 - wave.startTime) / (60 - wave.startTime)
         if ((now - wave.startTime) / 1000 == 60.toLong()) {
             wave.end()
         }
