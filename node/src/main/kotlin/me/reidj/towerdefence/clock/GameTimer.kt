@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.bukkit.scheduler.BukkitRunnable
 
 /**
  * @project : tower-simulator
@@ -16,7 +17,7 @@ interface ClockInject {
     fun run(tick: Int)
 }
 
-class GameTimer(private val injects: Set<ClockInject>) : () -> Unit {
+class GameTimer(private val injects: Set<ClockInject>) : () -> Unit, BukkitRunnable() {
 
     private var tick = 0
 
@@ -31,5 +32,9 @@ class GameTimer(private val injects: Set<ClockInject>) : () -> Unit {
                 injects.forEach { it.run(tick) }
             }
         }
+    }
+
+    override fun run() {
+        invoke()
     }
 }
