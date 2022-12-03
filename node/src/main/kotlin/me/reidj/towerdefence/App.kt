@@ -14,10 +14,7 @@ import dev.implario.platform.impl.darkpaper.PlatformDarkPaper
 import me.func.mod.Anime
 import me.func.mod.Kit
 import me.func.mod.conversation.ModLoader
-import me.func.mod.util.command
-import me.reidj.towerdefence.game.mob.Mob
 import me.reidj.towerdefence.player.User
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import ru.cristalix.core.internal.BukkitInternals
@@ -49,6 +46,8 @@ class App : JavaPlugin() {
 
         BukkitInternals.setInstance(FastBukkitInternals())
 
+        Anime.include(Kit.EXPERIMENTAL, Kit.STANDARD)
+
         val node = DefaultGameNode()
         val gson = Gson()
 
@@ -66,17 +65,15 @@ class App : JavaPlugin() {
         kensuke.globalRealm = "TWD-1"
         userManager.isOptional = true
 
-        Anime.include(Kit.NPC, Kit.EXPERIMENTAL, Kit.STANDARD, Kit.HEALTH_BAR, Kit.LOOTBOX)
-
         ModLoader.loadAll("mods")
 
-        command("mob") { player, args ->
+        /*command("mob") { player, args ->
             Mob {
                 hp = 5.0
                 moveSpeed = args[0].toFloat()
                 type = EntityType.ZOMBIE
             }.create(player)
-        }
+        }*/
     }
 
     companion object {

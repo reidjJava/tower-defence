@@ -1,4 +1,4 @@
-package me.reidj.towerdefence
+package me.reidj.towerdefence.util
 
 /**
  * @project : tower-defence

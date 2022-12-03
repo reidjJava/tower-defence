@@ -1,7 +1,8 @@
 package me.reidj.towerdefence.mob
 
 import dev.xdark.clientapi.entity.EntityLivingBase
-import me.reidj.towerdefence.Location
+import me.reidj.towerdefence.util.Location
+import me.reidj.towerdefence.util.updateNameHealth
 import ru.cristalix.uiengine.UIEngine
 import java.util.*
 import kotlin.math.pow
@@ -28,12 +29,17 @@ data class Mob(
         mob.teleport(firstLocation.x, firstLocation.y, firstLocation.z)
         mob.health = hp.toFloat()
         mob.alwaysRenderNameTag = true
+        mob.updateNameHealth()
         UIEngine.clientApi.minecraft().world.spawnEntity(mob)
         mob
     }
 
     fun kill() {
         UIEngine.clientApi.minecraft().world.removeEntity(entity)
+    }
+
+    fun hurtAnimation() {
+        entity.performHurtAnimation()
     }
 
     // TODO не поддерживает разную скорость и пути назад

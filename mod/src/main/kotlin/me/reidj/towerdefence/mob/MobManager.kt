@@ -1,8 +1,8 @@
 package me.reidj.towerdefence.mob
 
 import dev.xdark.clientapi.event.lifecycle.GameLoop
-import me.reidj.towerdefence.Location
 import me.reidj.towerdefence.banner.Banners
+import me.reidj.towerdefence.util.Location
 import ru.cristalix.clientapi.KotlinModHolder.mod
 import ru.cristalix.clientapi.readId
 import ru.cristalix.clientapi.readUtf8
@@ -40,6 +40,12 @@ class MobManager {
             val moveSpeed = readDouble()
             val timeSpawn = readLong()
             Mob(uuid, id, hp, moveSpeed.toFloat(), timeSpawn).also { mobs[uuid] = it }
+        }
+
+        mod.registerChannel("td:hurt-animation") {
+            val uuid = readId()
+            val mob = mobs[uuid] ?: return@registerChannel
+            mob.hurtAnimation()
         }
 
         mod.registerChannel("td:mob-kill") {
